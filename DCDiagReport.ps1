@@ -26,45 +26,57 @@
   V1:         Initial Development
 #>
 
-Import-Module ImportExcel
+#requires -Modules ImportExcel
 
-$SB = { 
+$SB = {
+    $DCDIAG = dcdiag /v
+    $DCDiagResults = New-Object System.Object
+    $DCDiagResults | Add-Member -name Server -Value $env:COMPUTERNAME -Type NoteProperty -Force
 
-  $DCDIAG = dcdiag /v
-  $DCDiagResults = New-Object System.Object
-  $DCDiagResults | Add-Member -name Server -Value $env:COMPUTERNAME -Type NoteProperty -Force
-
-    Foreach ($Entry in $DCDIAG)
-      
-      {
-      
-      Switch -Regex ($Entry) 
-      
-        {
-        
-        "Starting" {$Testname = ($Entry -replace ".*Starting test: ").Trim()}
-        "passed|failed" {If ($Entry -match "passed") {$TestStatus = "Passed"} Else {$TestStatus = "failed"}}
-        
-        }
-     
-        If ($TestName -ne $null -and $TestStatus -ne $null) 
-
-            {
-
-            $DCDiagResults | Add-Member -Type NoteProperty -name $($TestName.Trim()) -Value $TestStatus -Force
-
+    Foreach ($Entry in $DCDIAG) {
+        Switch -Regex ($Entry) {
+            "Starting" {
+                $Testname = ($Entry -replace ".*Starting test: ").Trim()
             }
-
+            "passed|failed" {
+                If ($Entry -match "passed") {
+                    $TestStatus = "Passed"
+                }
+                Else {
+                    $TestStatus = "failed"
+                }
+            }
         }
+    
+        If ($TestName -ne $null -and $TestStatus -ne $null) {
+            $DCDiagResults | Add-Member -Type NoteProperty -name $($TestName.Trim()) -Value $TestStatus -Force
+        }
+    }
 
     $DCDiagResults
-
 }
 
 $DCs = Get-ADDomainController -filter * | Select-Object Name
 
 $Session = New-PSSession -ComputerName $DCs.Name
 
-if($Session) { Invoke-Command -Session $Session -ScriptBlock $SB -ErrorAction SilentlyContinue | Export-Excel DCDiagReport.xlsx -FreezeTopRow -BoldTopRow -AutoFilter -WorkSheetname "DCDiag" -AutoSize  }
+if ($Session) {
+    $invokeCommandSplat = @{
+        ErrorAction = 'SilentlyContinue'
+        Session     = $Session
+        ScriptBlock = $SB
+    }
+
+    $exportExcelSplat = @{
+        Path            = "DCDiagReport.xlsx"
+        BoldTopRow      = $true
+        AutoSize        = $true
+        FreezeTopRow    = $true
+        WorkSheetname   = "DCDiag"
+        AutoFilter      = $true
+    }
+
+    Invoke-Command @invokeCommandSplat | Export-Excel @exportExcelSplat
+}
 
 Remove-PSSession $Session
