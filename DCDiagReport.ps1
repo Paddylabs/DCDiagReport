@@ -7,7 +7,7 @@
 
   .PARAMETER
   None
-  
+
   .EXAMPLE
   DCDiagReport.ps1
 
@@ -24,9 +24,10 @@
 
   Change Log:
   V1:         Initial Development
+  V2:         Input from brettmillerb, fixed formatting, added Requires statement and splatting.
 #>
 
-#requires -Modules ImportExcel
+#Requires -Modules ImportExcel
 
 $SB = {
     $DCDIAG = dcdiag /v
@@ -47,7 +48,7 @@ $SB = {
                 }
             }
         }
-    
+
         If ($TestName -ne $null -and $TestStatus -ne $null) {
             $DCDiagResults | Add-Member -Type NoteProperty -name $($TestName.Trim()) -Value $TestStatus -Force
         }
