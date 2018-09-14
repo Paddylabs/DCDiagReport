@@ -23,8 +23,9 @@
   Requires:      ImportExcel Module
 
   Change Log:
-  V1:         Initial Development
-  V2:         Input from brettmillerb, fixed formatting, added Requires statement and splatting.
+  V1.0:         Initial Development
+  V2.0:         Input from brettmillerb, fixed formatting, added Requires statement and splatting.
+  V2.1:         Added a Table and formatting for imporved readability of the data.
 #>
 
 #Requires -Modules ImportExcel
@@ -74,7 +75,8 @@ if ($Session) {
         AutoSize        = $true
         FreezeTopRow    = $true
         WorkSheetname   = "DCDiag"
-        AutoFilter      = $true
+        TableName       = "DCDiagTable"
+        TableStyle      = "Medium6"
     }
 
     Invoke-Command @invokeCommandSplat | Export-Excel @exportExcelSplat
