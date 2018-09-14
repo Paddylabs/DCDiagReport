@@ -25,7 +25,8 @@
   Change Log:
   V1.0:         Initial Development
   V2.0:         Input from brettmillerb, fixed formatting, added Requires statement and splatting.
-  V2.1:         Added a Table and formatting for imporved readability of the data.
+  V2.1:         Added a Table and formatting for improved readability of the data.
+  V2.2:         Added some conditional formatting so any failures stand out.
 #>
 
 #Requires -Modules ImportExcel
@@ -79,7 +80,9 @@ if ($Session) {
         TableStyle      = "Medium6"
     }
 
-    Invoke-Command @invokeCommandSplat | Export-Excel @exportExcelSplat
+    Invoke-Command @invokeCommandSplat | Export-Excel @exportExcelSplat  -ConditionalText @(
+        New-ConditionalText -Text Failed -ConditionalTextColor Darkred -BackgroundColor LightPink
+        )
 }
 
 Remove-PSSession $Session
